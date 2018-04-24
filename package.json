@@ -1,0 +1,8 @@
+{
+  "name": "addTheVersion",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:fynn90/addTheVersion.git",
+  "author": "Fynn <fynn.90@outlook.com>",
+  "license": "MIT"
+}

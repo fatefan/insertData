@@ -1,62 +1,73 @@
-const InsertLine = "<link href='./lib/vconsole.min.js' type='text/css' rel='stylesheet' />";
+var package = require('./package.json');
 const fs = require('fs');
+const os = require('os');
 var fileArr = [];
-var files =  fs.readdirSync('./sitdownrts/');
+const dirArr = ['./sitdownrts/', './sitdownrts/dist/html/']
+const InsertLine = '<meta name="version" content="' + package.version + '">';
+var LF, LFL;
+const platform = os.platform();
+if (platform === 'win32') {
+    LF = '\r\n';
+    LFL = 2;
+} else {
+    LF = '\n';
+    LFL = 1;
+}
 class operateFile {
-    constructor (fileName) {
-        console.info(fileName);
+    constructor(fileName) {
         this.fileName = fileName;
-        this.fileData = '';
-        this.input = fs.createReadStream(fileName);
+        this.fileData = ''
+        this.input = fs.createReadStream(fileName)
     }
 
-    readLines () {
+    readLines() {
         let remaining = '';
-        this.input.on('data',(data) => {
-            remaining +=data;
-            var index = remaining.indexOf('\r'); //windows 平台 \r\n linux 平台\n
-            // var index = remaining.indexOf('\n');  linux 平台\n
+        this.input.on('data', (data) => {
+            remaining += data;
+            var index = remaining.indexOf(LF);
             var last = 0;
             while (index > -1) {
-                let line = remaining.slice(last,index);
-                last = index+2; \\window
-                // linux last = index+2
+                let line = remaining.slice(last, index);
+                last = index + LFL;
                 this.saveLine(line);
-                index = remaining.indexOf('\r',last);
+                index = remaining.indexOf(LF, last);
             }
             remaining = remaining.slice(last);
         });
 
-        this.input.on('end',()=>{
+        this.input.on('end', () => {
             if (remaining.length > 0) {
                 this.saveLine(remaining);
             };
             this.writeAgain(this.fileData);
         })
     }
-
-    saveLine (line) {
-        if (line == '</head>') {
-            this.fileData = this.fileData + InsertLine +'\n';            
+    saveLine(line) {
+        this.fileData = this.fileData + line + LF;
+        if (line == '<head>') {
+            this.fileData = this.fileData + InsertLine + LF;
         }
-        this.fileData = this.fileData + line+'\n';
     };
-
-    writeAgain (data) {
-        let output = fs.createWriteStream(this.fileName,{encoding: 'utf8'});        
+    writeAgain(data) {
+        let output = fs.createWriteStream(this.fileName, { encoding: 'utf8' });
         output.write(data);
         output.end();
     }
-
-};
-filterFile(files);
-function filterFile(arr) {
+}
+function filterFile(arr, p) {
     arr.forEach((file) => {
-        var s = fs.statSync('./sitdownrts/' + file);
-        if (s.isFile()) {
-            let d = new operateFile('./sitdownrts/' + file);
+        var s = fs.statSync(p + file);
+        let split = file.split('.')
+        let fileType = split[split.length - 1]
+        if (s.isFile() && (fileType == 'html' || fileType == 'jsp')) {
+            let d = new operateFile(p + file);
             d.readLines();
         }
     });
 };
 
+for (let i = 0, l = dirArr.length; i < l; i++) {
+    let p = dirArr[i];
+    let files = fs.readdirSync(p);
+    filterFile(files, p);
+}
