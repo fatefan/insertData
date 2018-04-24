@@ -2,7 +2,11 @@
   "name": "addTheVersion",
   "version": "1.0.0",
   "main": "index.js",
+  "description": "给静态页面头部添加版本号标签",
   "repository": "git@github.com:fynn90/addTheVersion.git",
   "author": "Fynn <fynn.90@outlook.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "engines":{
+    "node":">=4.0.0"
+  }
 }
